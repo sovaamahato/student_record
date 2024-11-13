@@ -21,34 +21,6 @@ if ($result->num_rows > 0) {
 }
 
 $conn->close();
-
-// Handle Edit Student Submission
-if (isset($_POST['editStudent'])) {
-    include 'config.php';
-
-    $id = $_POST['id'];
-    $name = $_POST['name'];
-    $phone_number = $_POST['phone_number'];
-    $address = $_POST['address'];
-    $amount = $_POST['amount'];
-    $class = $_POST['class'];
-    $section = $_POST['section'];
-    $roll_no = $_POST['roll_no'];
-
-    $sql = "UPDATE students SET name=?, phone_number=?, address=?, amount=?, class=?, section=?, roll_no=? WHERE id=?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("sssssssi", $name, $phone_number, $address, $amount, $class, $section, $roll_no, $id);
-
-    if ($stmt->execute()) {
-        header("Location: welcome.php");
-        exit;
-    } else {
-        echo "Error: " . $stmt->error;
-    }
-
-    $stmt->close();
-    $conn->close();
-}
 ?>
 
 <!DOCTYPE html>
@@ -223,6 +195,19 @@ if (isset($_POST['editStudent'])) {
         .print-btn:hover {
             background-color: #c0392b;
         }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 24px;
+            color: #333;
+            cursor: pointer;
+        }
+
+        .close-btn:hover {
+            color: #e74c3c;
+        }
     </style>
 </head>
 <body>
@@ -291,33 +276,16 @@ if (isset($_POST['editStudent'])) {
     </div>
 </div>
 
-<!-- Edit Student Modal -->
-<div id="editStudentForm" class="modal">
-    <div class="modal-content">
-        <span class="close" onclick="document.getElementById('editStudentForm').style.display='none'">&times;</span>
-        <h3>Edit Student</h3>
-        <form action="welcome.php" method="POST">
-            <input type="hidden" name="id" id="editId">
-            <input type="text" name="name" id="editName" placeholder="Name" required><br>
-            <input type="text" name="phone_number" id="editPhone" placeholder="Phone Number" required><br>
-            <input type="text" name="address" id="editAddress" placeholder="Address" required><br>
-            <input type="number" name="amount" id="editAmount" placeholder="Amount" required><br>
-            <input type="text" name="class" id="editClass" placeholder="Class" required><br>
-            <input type="text" name="section" id="editSection" placeholder="Section" required><br>
-            <input type="number" name="roll_no" id="editRollNo" placeholder="Roll No." required><br>
-            <button type="submit" name="editStudent">Save Changes</button>
-        </form>
-        <button class="btn" type="button" onclick="document.getElementById('editStudentForm').style.display='none'">Cancel</button>
-    </div>
-</div>
 
 <!-- Print Bill Modal -->
 <div id="printBillModal" class="modal">
     <div class="modal-content">
-        <span class="close" onclick="document.getElementById('printBillModal').style.display='none'">&times;</span>
+        <span class="close-btn" onclick="document.getElementById('printBillModal').style.display='none'">&times;</span>
         <h3>Print Bill</h3>
-        <p id="billDetails"></p>
+        <div id="billDetails"></div>
         <button class="print-btn" onclick="window.print()">Print Bill</button>
+        <!-- Cancel Button -->
+        <button class="btn" onclick="document.getElementById('printBillModal').style.display='none'">Cancel</button>
     </div>
 </div>
 
@@ -338,21 +306,41 @@ if (isset($_POST['editStudent'])) {
         document.getElementById('editRollNo').value = "12";
     }
 
+
     // Print Bill
     function printBill(studentId) {
-        document.getElementById('printBillModal').style.display = 'block';
-        
-        // Fetch student details for the selected student (can be done via AJAX)
-        // Here, mock data is being displayed
-        var studentDetails = `
-            Student ID: ${studentId}<br>
-            Name: John Doe<br>
-            Amount: ₹5000<br>
-            Phone Number: 1234567890<br>
-            Address: Some Address<br>
-        `;
-        
-        document.getElementById('billDetails').innerHTML = studentDetails;
+        // Send AJAX request to fetch student details
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', 'get_student_details.php?id=' + studentId, true);
+
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                // Get student details from the response
+                const student = JSON.parse(xhr.responseText);
+
+                // Prepare the bill details with dynamic data from the database
+                const billDetails = `
+                    <p><strong>Student ID:</strong> ${student.id}</p>
+                    <p><strong>Name:</strong> ${student.name}</p>
+                    <p><strong>Phone Number:</strong> ${student.phone_number}</p>
+                    <p><strong>Address:</strong> ${student.address}</p>
+                    <p><strong>Amount:</strong> ₹${student.amount}</p>
+                    <p><strong>Class:</strong> ${student.class}</p>
+                    <p><strong>Section:</strong> ${student.section}</p>
+                    <p><strong>Roll No:</strong> ${student.roll_no}</p>
+                `;
+
+                // Display the bill details in the modal
+                document.getElementById('billDetails').innerHTML = billDetails;
+                document.getElementById('printBillModal').style.display = 'block';
+            } else {
+                alert("Failed to load student details.");
+            }
+        };
+
+        xhr.send();
+    
+
     }
 </script>
 
