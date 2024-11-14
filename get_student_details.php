@@ -1,20 +1,20 @@
 <?php
 include 'config.php';
 
-// Get student ID from URL parameter
 if (isset($_GET['id'])) {
-    $studentId = $_GET['id'];
+    $id = $_GET['id'];
 
     // Fetch student details from the database
-    $sql = "SELECT * FROM students WHERE id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $studentId);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $student = $result->fetch_assoc();
+    $sql = "SELECT * FROM students WHERE id = '$id'";
+    $result = $conn->query($sql);
 
-    // Return the student data as JSON
-    echo json_encode($student);
+    if ($result->num_rows > 0) {
+        $student = $result->fetch_assoc();
+        echo json_encode($student);
+    } else {
+        echo json_encode([]);
+    }
+
+    $conn->close();
 }
-
-$conn->close();
+?>
