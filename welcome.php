@@ -8,6 +8,8 @@ if (!isset($_SESSION['user_id'])) {
 
 include 'config.php';
 
+
+
 // Fetch student data for the logged-in user
 $sql = "SELECT * FROM students";
 $result = $conn->query($sql);
