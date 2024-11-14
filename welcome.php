@@ -18,6 +18,28 @@ if ($result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
         $students[] = $row;
     }
+
+
+
+}
+if (isset($_POST['updateStudent'])) {
+    $id = $_POST['id'];
+    $name = $_POST['name'];
+    $phone_number = $_POST['phone_number'];
+    $address = $_POST['address'];
+    $amount = $_POST['amount'];
+    $class = $_POST['class'];
+    $section = $_POST['section'];
+    $roll_no = $_POST['roll_no'];
+
+    // Update the student in the database
+    $sql = "UPDATE students SET name='$name', phone_number='$phone_number', address='$address', amount='$amount', class='$class', section='$section', roll_no='$roll_no' WHERE id='$id'";
+
+    if ($conn->query($sql) === TRUE) {
+        echo "<script>alert('Student details updated successfully!'); window.location.href = 'welcome.php';</script>";
+    } else {
+        echo "<script>alert('Error updating student: " . $conn->error . "');</script>";
+    }
 }
 
 $conn->close();
@@ -288,23 +310,56 @@ $conn->close();
         <button class="btn" onclick="document.getElementById('printBillModal').style.display='none'">Cancel</button>
     </div>
 </div>
+<!-- Edit Student Form (Modal) -->
+<div id="editStudentForm" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="document.getElementById('editStudentForm').style.display='none'">&times;</span>
+        <h3>Edit Student</h3>
+        <form action="welcome.php" method="POST">
+            <input type="hidden" id="editId" name="id"><br>
+            <input type="text" id="editName" name="name" placeholder="Name" required><br>
+            <input type="text" id="editPhone" name="phone_number" placeholder="Phone Number" required><br>
+            <input type="text" id="editAddress" name="address" placeholder="Address" required><br>
+            <input type="number" id="editAmount" name="amount" placeholder="Amount" required><br>
+            <input type="text" id="editClass" name="class" placeholder="Class" required><br>
+            <input type="text" id="editSection" name="section" placeholder="Section" required><br>
+            <input type="number" id="editRollNo" name="roll_no" placeholder="Roll No." required><br>
+            <button type="submit" name="updateStudent">Save Changes</button>
+        </form>
+        <button class="btn" type="button" onclick="document.getElementById('editStudentForm').style.display='none'">Cancel</button>
+    </div>
+</div>
+
 
 <script>
     // Open the Edit Student modal and pre-fill values
     function openEditModal(studentId) {
-        document.getElementById('editStudentForm').style.display = 'block';
+    document.getElementById('editStudentForm').style.display = 'block';
 
-        // Fetch student data from server using studentId (can be done via AJAX)
-        // Here I'm just setting mock data for demonstration
-        document.getElementById('editId').value = studentId;
-        document.getElementById('editName').value = "John Doe";
-        document.getElementById('editPhone').value = "1234567890";
-        document.getElementById('editAddress').value = "Some Address";
-        document.getElementById('editAmount').value = "5000";
-        document.getElementById('editClass').value = "10th";
-        document.getElementById('editSection').value = "A";
-        document.getElementById('editRollNo').value = "12";
-    }
+    // Fetch student data using AJAX (or PHP if preferred)
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', 'get_student_details.php?id=' + studentId, true);
+
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            const student = JSON.parse(xhr.responseText);
+            // Populate the form with student data
+            document.getElementById('editId').value = student.id;
+            document.getElementById('editName').value = student.name;
+            document.getElementById('editPhone').value = student.phone_number;
+            document.getElementById('editAddress').value = student.address;
+            document.getElementById('editAmount').value = student.amount;
+            document.getElementById('editClass').value = student.class;
+            document.getElementById('editSection').value = student.section;
+            document.getElementById('editRollNo').value = student.roll_no;
+        } else {
+            alert("Failed to fetch student details.");
+        }
+    };
+
+    xhr.send();
+}
+
 
 
     // Print Bill
