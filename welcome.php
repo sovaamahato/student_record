@@ -8,6 +8,33 @@ if (!isset($_SESSION['user_id'])) {
 
 include 'config.php';
 
+if (isset($_POST['addStudent'])) {
+    // Get the student details from the form
+    $name = $_POST['name'];
+    $phone_number = $_POST['phone_number'];
+    $address = $_POST['address'];
+    $amount = $_POST['amount'];
+    $class = $_POST['class'];
+    $section = $_POST['section'];
+    $roll_no = $_POST['roll_no'];
+
+    // Prepare the SQL query to insert the student data
+    $sql = "INSERT INTO students (name, phone_number, address, amount, class, section, roll_no) 
+            VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("sssssss", $name, $phone_number, $address, $amount, $class, $section, $roll_no);
+
+    if ($stmt->execute()) {
+        // Redirect to the same page to show the newly added student
+        header("Location: welcome.php");
+        exit;
+    } else {
+        echo "Error adding student: " . $stmt->error;
+    }
+
+    $stmt->close();
+}
 
 
 // Fetch student data for the logged-in user
